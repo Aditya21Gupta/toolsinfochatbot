@@ -1,0 +1,168 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Information Chatbot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Tool Information Chatbot</h1>
+        <div class="chat-box" id="chatBox">
+            <!-- Chat messages will appear here -->
+            <!-- <div class="bot-message">Hello! I'm your tool information assistant. Ask me anything about tools.</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask about tools...">
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatBox = document.getElementById('chatBox');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+
+            function addMessage(message, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'user-message' : 'bot-message';
+                messageDiv.textContent = message;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                addMessage(message, true);
+                userInput.value = '';
+
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `message=${encodeURIComponent(message)}`
+                    });
+
+                    const data = await response.json();
+                    if (data.response) {
+                        addMessage(data.response, false);
+                    } else {
+                        addMessage("Sorry, I couldn't process your request.", false);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage("Sorry, there was an error connecting to the chatbot.", false);
+                }
+            }
+
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html> --> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Information Chatbot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1><i class="fas fa-tools"></i> Tool Expert Assistant</h1>
+        </div>
+        <div class="chat-box" id="chatBox">
+            <div class="bot-message">
+                Hello! I'm your tool information assistant. Ask me anything about tools and their safe usage.
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask about tools..." autocomplete="off">
+            <button id="sendButton"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatBox = document.getElementById('chatBox');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                chatBox.appendChild(typingDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                return typingDiv;
+            }
+
+            function addMessage(message, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'user-message' : 'bot-message';
+                messageDiv.textContent = message;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                addMessage(message, true);
+                userInput.value = '';
+                
+                const typingIndicator = showTypingIndicator();
+
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `message=${encodeURIComponent(message)}`
+                    });
+
+                    const data = await response.json();
+                    chatBox.removeChild(typingIndicator);
+                    
+                    if (data.response) {
+                        addMessage(data.response, false);
+                    } else {
+                        addMessage("Sorry, I couldn't process your request.", false);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    chatBox.removeChild(typingIndicator);
+                    addMessage("Sorry, there was an error connecting to the chatbot.", false);
+                }
+            }
+
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
