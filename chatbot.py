@@ -268,19 +268,38 @@ class ToolChatbot:
 
             # Build the prompt correctly
             full_prompt = f"{self.get_context_prompt()}\n\nQuestion: {user_input}"
+            logging.debug("Full prompt sent to model:\n%s", full_prompt) # Log the full prompt
+            logging.debug("Prompt length: %d characters", len(full_prompt)) # Log prompt length
 
-            # Get API response - use simple text input format
+            # Get API response
             response = self.model.generate_content(full_prompt)
 
-            # Handle response
-            if response.text:
-                return response.text
+            # --- Start Debugging specific response issues ---
+            if not response.text:
+                logging.warning("Empty response. Checking details...")
+                if response.prompt_feedback and response.prompt_feedback.block_reason:
+                    logging.error("Prompt blocked due to: %s", response.prompt_feedback.block_reason)
+                    # You might want to return a more specific message here
+                    return "Sorry, your request was blocked due to safety concerns."
+                elif response.candidates:
+                    for candidate in response.candidates:
+                        if candidate.finish_reason:
+                            logging.warning("Candidate finish reason: %s", candidate.finish_reason)
+                        if candidate.safety_ratings:
+                            for rating in candidate.safety_ratings:
+                                if rating.blocked:
+                                    logging.error("Candidate blocked by safety rating: Category=%s, Probability=%s", rating.category, rating.probability)
+                                    # Again, specific message if needed
+                                    return "Sorry, the model's response was blocked due to safety concerns."
+                logging.warning("No text response and no clear block reason. Full API output: %s", response)
+                return "I didn't receive a valid response from the AI model."
+            # --- End Debugging specific response issues ---
+
             else:
-                logging.warning("Empty response. Full API output: %s", response)
-                return "I didn't receive a valid response."
+                return response.text
 
         except Exception as e:
-            logging.error("Error generating response: %s", str(e))
+            logging.exception("Error generating response for query '%s':", user_input) # Use logging.exception to get full traceback
             return "Sorry, I encountered an error. Please try again."
 
     def update_dataset(self, new_data):
