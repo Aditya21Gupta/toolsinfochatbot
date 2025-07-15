@@ -241,65 +241,44 @@ class ToolChatbot:
             "2. For unknown tools, say 'I don't have information about that tool'\n"
             "3. Keep responses concise (1-3 sentences)"
         )
-
-    def _check_rate_limit(self):
+                    def _check_rate_limit(self):
         """Prevent API rate limiting"""
         now = time.time()
         elapsed = now - self.last_request_time
-
-        if elapsed > self.REQUEST_WINDOW_SECONDS:  # Use constant
+        
+        if elapsed > 60:  # Reset counter after 1 minute
             self.request_count = 0
             self.last_request_time = now
-
+        
         self.request_count += 1
-        if self.request_count > self.MAX_REQUESTS_PER_WINDOW:  # Use constant
-            wait_time = self.REQUEST_WINDOW_SECONDS - elapsed
-            logging.warning("Rate limit hit. Waiting for %.2f seconds...", wait_time)
-            time.sleep(max(0, wait_time)) # Ensure wait_time is not negative
+        if self.request_count > 50:  # Stay under 50 requests/minute
+            wait_time = 60 - elapsed
+            time.sleep(wait_time)
             self.last_request_time = time.time()
             self.request_count = 0
 
     def generate_response(self, user_input):
         """Generate response with comprehensive error handling"""
         self._check_rate_limit()
-
+        
         try:
-            logging.info("Processing query: %s", user_input)
-
+            print("Processing query:", user_input)
+            
             # Build the prompt correctly
             full_prompt = f"{self.get_context_prompt()}\n\nQuestion: {user_input}"
-            logging.debug("Full prompt sent to model:\n%s", full_prompt) # Log the full prompt
-            logging.debug("Prompt length: %d characters", len(full_prompt)) # Log prompt length
-
-            # Get API response
+            
+            # Get API response - use simple text input format
             response = self.model.generate_content(full_prompt)
-
-            # --- Start Debugging specific response issues ---
-            if not response.text:
-                logging.warning("Empty response. Checking details...")
-                if response.prompt_feedback and response.prompt_feedback.block_reason:
-                    logging.error("Prompt blocked due to: %s", response.prompt_feedback.block_reason)
-                    # You might want to return a more specific message here
-                    return "Sorry, your request was blocked due to safety concerns."
-                elif response.candidates:
-                    for candidate in response.candidates:
-                        if candidate.finish_reason:
-                            logging.warning("Candidate finish reason: %s", candidate.finish_reason)
-                        if candidate.safety_ratings:
-                            for rating in candidate.safety_ratings:
-                                if rating.blocked:
-                                    logging.error("Candidate blocked by safety rating: Category=%s, Probability=%s", rating.category, rating.probability)
-                                    # Again, specific message if needed
-                                    return "Sorry, the model's response was blocked due to safety concerns."
-                logging.warning("No text response and no clear block reason. Full API output: %s", response)
-                return "I didn't receive a valid response from the AI model."
-            # --- End Debugging specific response issues ---
-
-            else:
+            
+            # Handle response
+            if response.text:
                 return response.text
-
+            else:
+                print("Empty response. Full API output:", response)
+                return "I didn't receive a valid response."
+                
         except Exception as e:
-            logging.exception("Error generating response for query '%s':", user_input) # Use logging.exception to get full traceback
+            print("Full error details:", str(e))
             return "Sorry, I encountered an error. Please try again."
 
     def update_dataset(self, new_data):
@@ -307,13 +286,88 @@ class ToolChatbot:
         try:
             if not isinstance(new_data.get('tools', []), list):
                 raise ValueError("Data must contain 'tools' array")
-
+                
             with open(DATASET_PATH, 'w') as f:
                 json.dump(new_data, f, indent=2)
             self.dataset = new_data
-            logging.info("Dataset updated successfully.")
             return True
-
+            
         except Exception as e:
-            logging.error("Error updating dataset: %s", str(e))
+            print("Error updating dataset:", str(e))
             return False
+
+    # def _check_rate_limit(self):
+    #     """Prevent API rate limiting"""
+    #     now = time.time()
+    #     elapsed = now - self.last_request_time
+
+    #     if elapsed > self.REQUEST_WINDOW_SECONDS:  # Use constant
+    #         self.request_count = 0
+    #         self.last_request_time = now
+
+    #     self.request_count += 1
+    #     if self.request_count > self.MAX_REQUESTS_PER_WINDOW:  # Use constant
+    #         wait_time = self.REQUEST_WINDOW_SECONDS - elapsed
+    #         logging.warning("Rate limit hit. Waiting for %.2f seconds...", wait_time)
+    #         time.sleep(max(0, wait_time)) # Ensure wait_time is not negative
+    #         self.last_request_time = time.time()
+    #         self.request_count = 0
+
+    # def generate_response(self, user_input):
+    #     """Generate response with comprehensive error handling"""
+    #     self._check_rate_limit()
+
+    #     try:
+    #         logging.info("Processing query: %s", user_input)
+
+    #         # Build the prompt correctly
+    #         full_prompt = f"{self.get_context_prompt()}\n\nQuestion: {user_input}"
+    #         logging.debug("Full prompt sent to model:\n%s", full_prompt) # Log the full prompt
+    #         logging.debug("Prompt length: %d characters", len(full_prompt)) # Log prompt length
+
+    #         # Get API response
+    #         response = self.model.generate_content(full_prompt)
+
+    #         # --- Start Debugging specific response issues ---
+    #         if not response.text:
+    #             logging.warning("Empty response. Checking details...")
+    #             if response.prompt_feedback and response.prompt_feedback.block_reason:
+    #                 logging.error("Prompt blocked due to: %s", response.prompt_feedback.block_reason)
+    #                 # You might want to return a more specific message here
+    #                 return "Sorry, your request was blocked due to safety concerns."
+    #             elif response.candidates:
+    #                 for candidate in response.candidates:
+    #                     if candidate.finish_reason:
+    #                         logging.warning("Candidate finish reason: %s", candidate.finish_reason)
+    #                     if candidate.safety_ratings:
+    #                         for rating in candidate.safety_ratings:
+    #                             if rating.blocked:
+    #                                 logging.error("Candidate blocked by safety rating: Category=%s, Probability=%s", rating.category, rating.probability)
+    #                                 # Again, specific message if needed
+    #                                 return "Sorry, the model's response was blocked due to safety concerns."
+    #             logging.warning("No text response and no clear block reason. Full API output: %s", response)
+    #             return "I didn't receive a valid response from the AI model."
+    #         # --- End Debugging specific response issues ---
+
+    #         else:
+    #             return response.text
+
+    #     except Exception as e:
+    #         logging.exception("Error generating response for query '%s':", user_input) # Use logging.exception to get full traceback
+    #         return "Sorry, I encountered an error. Please try again."
+
+    # def update_dataset(self, new_data):
+    #     """Update dataset with validation"""
+    #     try:
+    #         if not isinstance(new_data.get('tools', []), list):
+    #             raise ValueError("Data must contain 'tools' array")
+
+    #         with open(DATASET_PATH, 'w') as f:
+    #             json.dump(new_data, f, indent=2)
+    #         self.dataset = new_data
+    #         logging.info("Dataset updated successfully.")
+    #         return True
+
+    #     except Exception as e:
+    #         logging.error("Error updating dataset: %s", str(e))
+    #         return False
