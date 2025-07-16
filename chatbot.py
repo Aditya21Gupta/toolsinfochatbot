@@ -238,10 +238,30 @@ class ToolChatbot:
         tools_info = []
         for tool in self.dataset['tools'][:100]:
             tools_info.append(
+                # f"Tool ID: {tool.get('TLMS_TOOL_ID', 'N/A')}\n"
+                # f"- Part: {tool.get('TLMS_PRC_PART', 'N/A')}\n"
+                # f"- Category: {tool.get('TLMS_CHILD_PART_CATEGORY', 'N/A')}\n"
+                # f"- Status: {tool.get('TLMS_TOOL_STATUS', 'N/A')}"
+                f"🔧 Tool Summary\n"
                 f"Tool ID: {tool.get('TLMS_TOOL_ID', 'N/A')}\n"
-                f"- Part: {tool.get('TLMS_PRC_PART', 'N/A')}\n"
-                f"- Category: {tool.get('TLMS_CHILD_PART_CATEGORY', 'N/A')}\n"
-                f"- Status: {tool.get('TLMS_TOOL_STATUS', 'N/A')}"
+                f"Part No: {tool.get('TLMS_PRC_PART', 'N/A')}\n"
+                f"Child Part No: {tool.get('TLMS_CHILD_PART_NO', 'N/A')}\n"
+                f"Category: {tool.get('TLMS_CHILD_PART_CATEGORY', 'N/A')} ({tool.get('TLMS_CHILD_PART_CATEGORY_DET', 'N/A')})\n"
+                f"Quantity: {tool.get('TLMS_CHILD_PART_QTY', 'N/A')}\n"
+                f"Tool Status: {tool.get('TLMS_TOOL_STATUS', 'N/A')} ({tool.get('TLMS_ACTIVE_FLAG', 'N/A')})\n"
+                f"Ownership Code: {tool.get('TLMS_TOOL_OWNERSHIP', 'N/A')}\n"
+                f"Operation No: {tool.get('TLMS_TOOL_OPERATION_NO', 'N/A')}\n"
+                f"Tool Has Detail: {tool.get('TLMS_TOOL_HAS_TOOL_DET', 'N/A')}\n"
+                f"Asset No: {tool.get('TLMS_MSIL_ASSET_NO', 'N/A')} | Flag: {tool.get('TLMS_ASSET_NO_FLG', 'N/A')}\n"
+                f"Defined Tool Life: {tool.get('TLMS_MSIL_DEFINED_TOOLLIFE', 'N/A')}\n"
+                f"System Cal Stroke: {tool.get('TLMS_SYS_CAL_STROKE', 'N/A')} (Date: {tool.get('TLMS_SYS_CAL_STROKE_DT', 'N/A')})\n"
+                f"Duplicate Set Tooling: {tool.get('TLMS_DUPLICATE_SET_TOOLING', 'N/A')}\n"
+                f"Retooling Status: {tool.get('TLMS_RETOOLING_STS', 'N/A')}\n"
+                f"Vendor Code: {tool.get('TLMS_VEND_CODE', 'N/A')} | Mail: {tool.get('TLMS_VENDOR_MAIL_ID', 'N/A')}\n"
+                f"Tool Vend Date: {tool.get('TLMS_TOOL_VEND_DATE', 'N/A')}\n"
+                f"Approved During RFQ: {tool.get('TLMS_TOOLS_APPROVED_DURING_RFQ', 'N/A')}\n"
+                f"Close Date: {tool.get('TLMS_CLOSE_DATE', 'N/A')}\n"
+                f"Created By: {tool.get('TLMS_CREATED_BY', 'N/A')} on {tool.get('TLMS_CREATED_ON', 'N/A')}\n"
             )
         
         return (
