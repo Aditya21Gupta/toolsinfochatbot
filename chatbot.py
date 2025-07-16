@@ -236,7 +236,7 @@ class ToolChatbot:
         
         # Build knowledge base (limit to first 20 tools for efficiency)
         tools_info = []
-        for tool in self.dataset['tools'][:100]:
+        for tool in self.dataset['tools'][:500]:
             tools_info.append(
                 # f"Tool ID: {tool.get('TLMS_TOOL_ID', 'N/A')}\n"
                 # f"- Part: {tool.get('TLMS_PRC_PART', 'N/A')}\n"
