@@ -290,26 +290,73 @@ class ToolChatbot:
             self.last_request_time = time.time()
             self.request_count = 0
 
-    def generate_response(self, user_input):
-        """Generate response with comprehensive error handling"""
-        self._check_rate_limit()
+    # def generate_response(self, user_input):
+    #     """Generate response with comprehensive error handling"""
+    #     self._check_rate_limit()
         
+    #     try:
+    #         print("Processing query:", user_input)
+            
+    #         # Build the prompt correctly
+    #         full_prompt = f"{self.get_context_prompt()}\n\nQuestion: {user_input}"
+            
+    #         # Get API response - use simple text input format
+    #         response = self.model.generate_content(full_prompt)
+            
+    #         # Handle response
+    #         if response.text:
+    #             return response.text
+    #         else:
+    #             print("Empty response. Full API output:", response)
+    #             return "I didn't receive a valid response."
+                
+    #     except Exception as e:
+    #         print("Full error details:", str(e))
+    #         return "Sorry, I encountered an error. Please try again."
+
+    def generate_response(self, user_input):
+        self._check_rate_limit()
+
         try:
             print("Processing query:", user_input)
+
+            # --- INTELLIGENT ROUTING AND DATA EXTRACTION ---
+            response_text = None
             
-            # Build the prompt correctly
+            # Example: Check for specific counting queries
+            user_input_lower = user_input.lower()
+            if "how many plastic tools" in user_input_lower:
+                plastic_tools_count = 0
+                for tool in self.dataset.get('tools', []):
+                    if tool.get('TLMS_CHILD_PART_CATEGORY', '').lower() == 'plastic tools':
+                        plastic_tools_count += 1
+                response_text = f"There are {plastic_tools_count} plastic tools."
+            
+            elif "how many tools have status" in user_input_lower and "available" in user_input_lower:
+                # More complex parsing needed here to extract status
+                available_tools_count = 0
+                for tool in self.dataset.get('tools', []):
+                    if tool.get('TLMS_TOOL_STATUS', '').lower() == 'available': # Assuming 'available' is a status
+                        available_tools_count += 1
+                response_text = f"There are {available_tools_count} tools with 'Available' status."
+            
+            # Add more specific query patterns for other counts/aggregations
+
+            if response_text:
+                # If we handled the query programmatically, return the direct answer
+                return response_text
+            # --- END INTELLIGENT ROUTING ---
+
+            # If not handled programmatically, proceed with LLM generation as before
             full_prompt = f"{self.get_context_prompt()}\n\nQuestion: {user_input}"
-            
-            # Get API response - use simple text input format
             response = self.model.generate_content(full_prompt)
             
-            # Handle response
             if response.text:
                 return response.text
             else:
                 print("Empty response. Full API output:", response)
                 return "I didn't receive a valid response."
-                
+
         except Exception as e:
             print("Full error details:", str(e))
             return "Sorry, I encountered an error. Please try again."
