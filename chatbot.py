@@ -197,7 +197,7 @@ class ToolChatbot:
             self.model = genai.GenerativeModel(
                 GEMINI_MODEL,
                 generation_config={
-                    "temperature": 0.4,
+                    "temperature": 0.0,
                     "max_output_tokens": 10000
                 },
                 safety_settings=[
